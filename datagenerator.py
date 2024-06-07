@@ -1,3 +1,4 @@
+import os
 import uuid
 import random
 import pandas as pd
@@ -8,8 +9,23 @@ start_date = dt.datetime(2018, 5, 17)
 end_date = dt.datetime(2020, 5, 25)
 
 number_of_data_to_generate = 10000
+
 user_login_csv = "login_data.csv"
 user_purchase_csv = "purchase_data.csv"
+
+
+def delete_file(file_path):
+    if os.path.exists(file_path):
+        os.remove(file_path)
+        print(f"File '{file_path}' deleted successfully.")
+    else:
+        print(f"File '{file_path}' not found.")
+
+
+should_delete_first = False
+if should_delete_first:
+    delete_file(user_login_csv)
+    delete_file(user_purchase_csv)
 
 
 def save_df_as_csv(dataframe, filename, index=False, header=True):
@@ -166,9 +182,11 @@ repository.add_product(product7)
 
 trx_ids = []
 
+multiplier = random.randint(5, 10)
+
 
 def generate_transaction_id(prefix="TXN-"):
-    random_number = str(random.randint(100000, 999999))
+    random_number = str(random.randint(5000, number_of_data_to_generate * multiplier * 2))
     tnx = prefix + random_number
     if tnx in trx_ids:
         generate_transaction_id()
@@ -201,6 +219,16 @@ def generate_purchase_data(num_entries):
         pro = repository.get_product_by_id(ran_num)
         add_entry(uuid, tnx_id, purchase_stamp, pro.get_id(), pro.get_name(), pro.get_type(), pro.get_price())
 
+    # Identify the rows where product_id is 7
+    product_7_df = df[df['product_id'] == 7]
+
+    # Find the user_ids that are repeating in this subset
+    repeating_user_ids = product_7_df['user_id'].value_counts()
+    repeating_user_ids = repeating_user_ids[repeating_user_ids > 1].index
+
+    # Remove these repeating user_id rows from the original dataframe
+    df = df[~((df['product_id'] == 7) & (df['user_id'].isin(repeating_user_ids)))]
+
     return df
 
 
@@ -209,7 +237,7 @@ user_purchase_data = read_csv_to_df(user_purchase_csv)
 print("Getting Purchase data...")
 if user_purchase_data is None:
     print("CSV not found! Creating new data...")
-    user_purchase_data = generate_purchase_data(number_of_data_to_generate * random.randint(5, 10))
+    user_purchase_data = generate_purchase_data(number_of_data_to_generate * multiplier)
     save_df_as_csv(user_purchase_data, user_purchase_csv)
 
 # remove data where same user purchased ad free multiple times and keep only first such record
