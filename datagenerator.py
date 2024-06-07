@@ -117,7 +117,6 @@ if user_login_data is None:
 
 print(user_login_data.head())
 print(user_login_data.size)
-user_uuid = user_login_data['user_id'].tolist()
 ###################################################################################
 
 
@@ -212,9 +211,11 @@ def generate_purchase_data(num_entries):
         return df
 
     for i in range(1, num_entries):
+        sample = user_login_data.sample(frac=0.25)
+        user_uuid = sample['user_id'].tolist()
         uuid = random.choice(user_uuid)
         tnx_id = generate_transaction_id()
-        purchase_stamp = generate_random_datetime()
+        purchase_stamp = dt.datetime.fromtimestamp(generate_random_datetime())
         ran_num = random.randint(1,7)
         pro = repository.get_product_by_id(ran_num)
         add_entry(uuid, tnx_id, purchase_stamp, pro.get_id(), pro.get_name(), pro.get_type(), pro.get_price())
@@ -240,15 +241,62 @@ if user_purchase_data is None:
     user_purchase_data = generate_purchase_data(number_of_data_to_generate * multiplier)
     save_df_as_csv(user_purchase_data, user_purchase_csv)
 
-# remove data where same user purchased ad free multiple times and keep only first such record
-
-
 print(user_purchase_data.head())
 print(user_purchase_data.size)
-
 
 print("purchase data where ad free was purchased")
 
 ext_data = user_purchase_data.loc[user_purchase_data['product_id'] == 7]
 print(ext_data)
 
+
+print("Total unique users", user_login_data['user_id'].nunique())
+print("Unique User who purchased", user_purchase_data['user_id'].nunique())
+
+product_names = []
+earned = []
+
+for i in range(1, 8):
+    pro = repository.get_product_by_id(i)
+    sum_product_price = user_purchase_data.loc[user_purchase_data['product_id'] == pro.get_id(), 'product_price'].sum()
+    product_names.append(pro.get_name())
+    earned.append(sum_product_price)
+    print(f"Earned from {pro.get_name()} Purchase", sum_product_price)
+
+
+
+import matplotlib.pyplot as plt
+fig = plt.figure(figsize=(10, 5))
+
+# creating the bar plot
+plt.bar(product_names, earned, color='blue',
+        width=0.4)
+
+plt.xlabel("Products")
+plt.ylabel("Amount Earned in INR")
+plt.title("Earned per product in INR")
+plt.show()
+
+# # Convert purchase_timestamp to datetime
+# df['purchase_timestamp'] = pd.to_datetime(df['purchase_timestamp'], unit='s')
+#
+# # Define the date range
+# start_date = 'YYYY-MM-DD'  # Replace with your start date
+# end_date = 'YYYY-MM-DD'    # Replace with your end date
+#
+# # Filter the DataFrame for the date range and product_id == 7
+# filtered_df = df[(df['purchase_timestamp'] >= start_date) &
+#                  (df['purchase_timestamp'] <= end_date) &
+#                  (df['product_id'] == 7)]
+#
+# # Get the count of product_id == 7 within the date range
+# product_7_count = filtered_df.shape[0]
+#
+# # Calculate the sum and average of purchase_price for product_id == 7 within the date range
+# product_7_sum = filtered_df['purchase_price'].sum()
+# product_7_avg = filtered_df['purchase_price'].mean()
+#
+# # Print the results
+# print(f"Number of product_id == 7 within the date range: {product_7_count}")
+# print(f"Sum of purchase_price for product_id == 7 within the date range: {product_7_sum}")
+# print(f"Average of purchase_price for product_id == 7 within the date range: {product_7_avg}")
