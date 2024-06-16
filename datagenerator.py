@@ -249,9 +249,11 @@ print("purchase data where ad free was purchased")
 ext_data = user_purchase_data.loc[user_purchase_data['product_id'] == 7]
 print(ext_data)
 
-
+print("*", 50)
 print("Total unique users", user_login_data['user_id'].nunique())
 print("Unique User who purchased", user_purchase_data['user_id'].nunique())
+print("Unique User who purchased Ad Free", ext_data['user_id'].nunique())
+print("*", 50)
 
 product_names = []
 earned = []
@@ -263,7 +265,10 @@ for i in range(1, 8):
     earned.append(sum_product_price)
     print(f"Earned from {pro.get_name()} Purchase", sum_product_price)
 
-
+print("\n\n\n")
+print("*"*50)
+print(user_login_data.columns)
+print(user_purchase_data.columns)
 
 import matplotlib.pyplot as plt
 fig = plt.figure(figsize=(10, 5))
@@ -300,3 +305,5 @@ plt.show()
 # print(f"Number of product_id == 7 within the date range: {product_7_count}")
 # print(f"Sum of purchase_price for product_id == 7 within the date range: {product_7_sum}")
 # print(f"Average of purchase_price for product_id == 7 within the date range: {product_7_avg}")
+
+
